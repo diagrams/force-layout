@@ -195,7 +195,7 @@ simulate :: (InnerSpace v, Ord (Scalar v), Num (Scalar v))
          => ForceLayoutOpts v -> Ensemble v -> [Ensemble v]
 simulate opts e
   = (e:)
-  . takeWhile (maybe (const True) (>) (energyLimit opts) . kineticEnergy)
+  . takeWhile (maybe (const True) (<) (energyLimit opts) . kineticEnergy)
   . maybe id take (stepLimit opts)
   . drop 1
   . iterate (ensembleStep (damping opts))
