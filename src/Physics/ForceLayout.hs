@@ -10,7 +10,7 @@
 -- License     :  BSD-style (see LICENSE)
 -- Maintainer  :  byorgey@cis.upenn.edu
 --
--- A simple, Haskell-native simulator for doing force-based layout,
+-- A simple, Haskell-native simulator for doing force-directed layout,
 -- /e.g./ of trees or graphs.
 --
 -- To use, just create an 'Ensemble' like so:
