@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 extra-source-files:  CHANGES
 source-repository head
   type:     darcs
-  location: http://patch-tag.com/r/byorgey/force-layout
+  location: http://hub.darcs.net/byorgey/force-layout
 
 library
   exposed-modules:     Physics.ForceLayout
