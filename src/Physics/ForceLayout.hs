@@ -40,7 +40,7 @@
 -- >                  e
 --
 -- See the diagrams-contrib package
--- (<http://patch-tag.com/r/byorgey/diagrams-contrib/home>) for more
+-- (<http://github.com/diagrams/diagrams-contrib/>) for more
 -- examples.
 -----------------------------------------------------------------------------
 
