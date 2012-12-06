@@ -1,3 +1,11 @@
+* 0.2: 5 December 2012
+
+  - Switch from fclabels to lens.
+
+    Note this requires a major version bump because the accessors for
+    Particle and Ensemble are exported, and they have completely
+    different types.  But the API has not otherwise changed.
+
 * 0.1.0.2: 23 August 2012
 
   - Bump upper bounds to allow base-4.6 and containers-0.5
