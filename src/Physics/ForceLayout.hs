@@ -14,6 +14,11 @@
 --
 -- To use, just create an 'Ensemble' like so:
 --
+-- > import           Physics.ForceLayout
+-- > import qualified Data.Map              as M
+-- > import           Data.AffineSpace.Point
+-- >
+-- > e :: Ensemble (Double, Double)
 -- > e = Ensemble [ (edges,    hookeForce 0.05 4)
 -- >              , (allPairs, coulombForce 1)
 -- >              ]
@@ -31,6 +36,7 @@
 -- all intermediate states) or 'forceLayout' (to get only the ending
 -- state):
 --
+-- > e' :: Ensemble (Double, Double)
 -- > e' = forceLayout (FLOpts { damping     = 0.8
 -- >                          , energyLimit = Just 0.001
 -- >                          , stepLimit   = Nothing
