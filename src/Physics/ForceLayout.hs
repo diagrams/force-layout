@@ -1,7 +1,6 @@
-{-# LANGUAGE TemplateHaskell
-           , ScopedTypeVariables
-           , FlexibleContexts
-  #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -76,18 +75,17 @@ module Physics.ForceLayout
        ) where
 
 import           Control.Monad
-import           Control.Newtype
+import           Control.Newtype                 (ala)
 import           Data.AffineSpace
 import           Data.AffineSpace.Point
 import           Data.Foldable                   (foldMap)
 import qualified Data.Foldable     as F
-import           Data.Label                      (mkLabels)
-import qualified Data.Label as L
 import qualified Data.Map          as M
 import           Data.Maybe
 import           Data.Monoid
 import           Data.VectorSpace         hiding (Sum)
-import           Prelude
+
+import           Control.Lens             hiding (ala)
 
 ------------------------------------------------------------
 --  Particles
@@ -101,7 +99,7 @@ data Particle v = Particle { _pos   :: Point v
                            }
   deriving (Eq, Show)
 
-mkLabels [''Particle]
+makeLenses ''Particle
 
 -- | Create an initial particle at rest at a particular location.
 initParticle :: AdditiveGroup v => Point v -> Particle v
@@ -126,7 +124,7 @@ data Ensemble v = Ensemble { _forces    :: [([Edge], Point v -> Point v -> v)]
                            , _particles :: M.Map PID (Particle v)
                            }
 
-mkLabels [''Ensemble]
+makeLenses ''Ensemble
 
 ------------------------------------------------------------
 --  Simulation internals
@@ -135,20 +133,20 @@ mkLabels [''Ensemble]
 -- | Simulate one time step for an entire ensemble, with the given
 --   damping factor.
 ensembleStep :: VectorSpace v => Scalar v -> Ensemble v -> Ensemble v
-ensembleStep d = (L.modify particles . M.map) (particleStep d) . recalcForces
+ensembleStep d = (over particles . M.map) (particleStep d) . recalcForces
 
 -- | Simulate one time step for a particle (assuming the force acting
 --   on it has already been computed), with the given damping factor.
 particleStep :: VectorSpace v => Scalar v -> Particle v -> Particle v
 particleStep d = stepPos . stepVel
-  where stepVel p = L.set vel (d *^ (L.get vel p ^+^ L.get force p)) p
-        stepPos p = L.modify pos (.+^ L.get vel p) p
+  where stepVel p = vel .~ (d *^ (p^.vel ^+^ p^.force)) $ p
+        stepPos p = pos %~ (.+^ p^.vel) $ p
 
 -- | Recalculate all the forces acting in the next time step of an
 --   ensemble.
 recalcForces :: forall v. AdditiveGroup v => Ensemble v -> Ensemble v
 recalcForces = calcForces . zeroForces
-  where zeroForces = L.modify particles . M.map $ L.set force zeroV
+  where zeroForces = (particles %~) . M.map $ force .~ zeroV
         calcForces (Ensemble fs ps)
           = Ensemble fs
             (ala Endo foldMap (concatMap (\(es, f) -> (map (mkForce f) es)) fs) ps)
@@ -156,14 +154,14 @@ recalcForces = calcForces . zeroForces
         mkForce f (i1, i2) m
           = case (M.lookup i1 m, M.lookup i2 m) of
               (Just p1, Just p2) ->
-                ( M.adjust (L.modify force (^+^ f (L.get pos p1) (L.get pos p2))) i1
-                . M.adjust (L.modify force (^-^ f (L.get pos p1) (L.get pos p2))) i2)
+                ( M.adjust (force %~ (^+^ f (p1^.pos) (p2^.pos))) i1
+                . M.adjust (force %~ (^-^ f (p1^.pos) (p2^.pos))) i2)
                 m
               _                  -> m
 
 -- | Compute the total kinetic energy of an ensemble.
 kineticEnergy :: (InnerSpace v, Num (Scalar v)) => Ensemble v -> Scalar v
-kineticEnergy = ala Sum F.foldMap . fmap (magnitudeSq . L.get vel) . L.get particles
+kineticEnergy = ala Sum F.foldMap . fmap (magnitudeSq . view vel) . view particles
 
 ------------------------------------------------------------
 --  Simulation
