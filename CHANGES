@@ -1,3 +1,7 @@
+* 0.2.0.1: 22 Dec 2013
+
+  - Allow base-4.7
+
 * 0.2: 5 December 2012
 
   - Switch from fclabels to lens.
