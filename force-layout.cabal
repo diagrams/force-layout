@@ -19,7 +19,7 @@ source-repository head
 
 library
   exposed-modules:     Physics.ForceLayout
-  build-depends:       base >= 4.2 && < 4.7,
+  build-depends:       base >= 4.2 && < 4.8,
                        newtype ==0.2.*,
                        vector-space >=0.7 && <0.9,
                        vector-space-points >= 0.1.1 && < 0.2,
