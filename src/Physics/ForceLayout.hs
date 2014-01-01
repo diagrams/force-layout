@@ -69,6 +69,7 @@ module Physics.ForceLayout
          -- * Running simulations
 
        , ForceLayoutOpts(..)
+       , damping, energyLimit, stepLimit
        , simulate
        , forceLayout
 
@@ -187,9 +188,10 @@ data ForceLayoutOpts v =
                                        --   @Just 0.001@.
   , _stepLimit   :: Maybe Int          -- ^ Maximum number of
                                        --   simulation steps.  If
-                                       --   @Nothing@ (the default), pay no
+                                       --   @Nothing@, pay no
                                        --   attention to the number of
-                                       --   steps.
+                                       --   steps.  The default is
+                                       --   @Just 1000@.
   }
 
 makeLenses ''ForceLayoutOpts
@@ -198,7 +200,7 @@ instance Fractional (Scalar v) => Default (ForceLayoutOpts v) where
   def = FLOpts
         { _damping     = 0.8
         , _energyLimit = Just 0.001
-        , _stepLimit   = Nothing
+        , _stepLimit   = Just 1000
         }
 
 -- | Simulate a starting ensemble according to the given options,
