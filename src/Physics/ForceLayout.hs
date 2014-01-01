@@ -1,6 +1,7 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE ScopedTypeVariables  #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -17,6 +18,7 @@
 -- > import           Physics.ForceLayout
 -- > import qualified Data.Map              as M
 -- > import           Data.AffineSpace.Point
+-- > import           Data.Default (def)
 -- >
 -- > e :: Ensemble (Double, Double)
 -- > e = Ensemble [ (edges,    hookeForce 0.05 4)
@@ -37,10 +39,9 @@
 -- state):
 --
 -- > e' :: Ensemble (Double, Double)
--- > e' = forceLayout (FLOpts { damping     = 0.8
--- >                          , energyLimit = Just 0.001
--- >                          , stepLimit   = Nothing
--- >                          }
+-- > e' = forceLayout (def & damping     .~ 0.8
+-- >                       & energyLimit .~ Just 0.001
+-- >                       & stepLimit   .~ Nothing
 -- >                  )
 -- >                  e
 --
@@ -80,18 +81,16 @@ module Physics.ForceLayout
 
        ) where
 
-import           Control.Monad
-import           Control.Newtype                 (ala)
 import           Data.AffineSpace
 import           Data.AffineSpace.Point
-import           Data.Foldable                   (foldMap)
-import qualified Data.Foldable     as F
-import qualified Data.Map          as M
-import           Data.Maybe
+import           Data.Default.Class
+import           Data.Foldable          (foldMap)
+import qualified Data.Foldable          as F
+import qualified Data.Map               as M
 import           Data.Monoid
-import           Data.VectorSpace         hiding (Sum)
+import           Data.VectorSpace       hiding (Sum)
 
-import           Control.Lens             hiding (ala)
+import           Control.Lens
 
 ------------------------------------------------------------
 --  Particles
@@ -176,18 +175,31 @@ kineticEnergy = ala Sum F.foldMap . fmap (magnitudeSq . view vel) . view particl
 -- | Options for customizing a simulation.
 data ForceLayoutOpts v =
   FLOpts
-  { damping     :: Scalar v           -- ^ Damping factor to be
-                                      --   applied at each step.
-                                      --   Should be between 0 and 1.
-  , energyLimit :: Maybe (Scalar v)   -- ^ Kinetic energy below which
-                                      --   simulation should stop.  If
-                                      --   @Nothing@, pay no attention
-                                      --   to kinetic energy.
-  , stepLimit   :: Maybe Int          -- ^ Maximum number of
-                                      --   simulation steps.  If
-                                      --   @Nothing@, pay no attention
-                                      --   to the number of steps.
+  { _damping     :: Scalar v           -- ^ Damping factor to be
+                                       --   applied at each step.
+                                       --   Should be between 0 and 1.
+                                       --   The default is 0.8.
+  , _energyLimit :: Maybe (Scalar v)   -- ^ Kinetic energy below which
+                                       --   simulation should stop.
+                                       --   If @Nothing@, pay no
+                                       --   attention to kinetic
+                                       --   energy.  The default is
+                                       --   @Just 0.001@.
+  , _stepLimit   :: Maybe Int          -- ^ Maximum number of
+                                       --   simulation steps.  If
+                                       --   @Nothing@ (the default), pay no
+                                       --   attention to the number of
+                                       --   steps.
   }
+
+makeLenses ''ForceLayoutOpts
+
+instance Fractional (Scalar v) => Default (ForceLayoutOpts v) where
+  def = FLOpts
+        { _damping     = 0.8
+        , _energyLimit = Just 0.001
+        , _stepLimit   = Nothing
+        }
 
 -- | Simulate a starting ensemble according to the given options,
 --   producing a list of all the intermediate ensembles.  Useful for,
@@ -199,10 +211,10 @@ simulate :: (InnerSpace v, Ord (Scalar v), Num (Scalar v))
          => ForceLayoutOpts v -> Ensemble v -> [Ensemble v]
 simulate opts e
   = (e:)
-  . takeWhile (maybe (const True) (<) (energyLimit opts) . kineticEnergy)
-  . maybe id take (stepLimit opts)
+  . takeWhile (maybe (const True) (<) (opts ^. energyLimit) . kineticEnergy)
+  . maybe id take (opts ^. stepLimit)
   . drop 1
-  . iterate (ensembleStep (damping opts))
+  . iterate (ensembleStep (opts ^. damping))
   $ e
 
 -- | Run a simluation from a starting ensemble, yielding either the
