@@ -1,3 +1,7 @@
+* 0.3: 1 January 2014
+
+  - Use lenses for ForceLayoutOpts
+
 * 0.2.0.1: 22 Dec 2013
 
   - Allow base-4.7
