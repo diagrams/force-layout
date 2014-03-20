@@ -1,3 +1,7 @@
+* 0.3.0.3: 19 March 2014
+
+  - Allow lens-4.1
+
 * 0.3.0.2: 9 March 2014
 
   - Allow vector-space-points-0.2
