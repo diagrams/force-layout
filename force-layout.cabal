@@ -8,14 +8,15 @@ license:             BSD3
 license-file:        LICENSE
 author:              Brent Yorgey
 maintainer:          byorgey@cis.upenn.edu
+bug-reports:         https://github.com/diagrams/force-layout/issues
 copyright:           (c) 2011 Brent Yorgey
 category:            Graphics
 build-type:          Simple
 cabal-version:       >=1.10
 extra-source-files:  CHANGES
 source-repository head
-  type:     darcs
-  location: http://hub.darcs.net/byorgey/force-layout
+  type:     git
+  location: git://github.com/diagrams/force-layout.git
 
 library
   exposed-modules:     Physics.ForceLayout
