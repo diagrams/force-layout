@@ -1,4 +1,9 @@
-# 0.3.0.4: 2 June 2014
+* 0.3.0.5 (12 June 2014)
+
+  - Add extension to allow building with GHC HEAD (7.9) (thanks to
+    Gabor Greif)
+
+* 0.3.0.4: 2 June 2014
 
   - Allow lens-4.2
 
