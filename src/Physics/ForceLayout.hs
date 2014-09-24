@@ -57,13 +57,14 @@ module Physics.ForceLayout
 
        , PID
        , Edge
-       , Ensemble(..), forces, particles
+       , Ensemble(..), interForces, particleForces, particles
 
-         -- * Pre-defined forces
+         -- * Pre-defined interForces
 
        , hookeForce
        , coulombForce
        , distForce
+       , gravitate
 
          -- * Running simulations
 
@@ -82,9 +83,9 @@ module Physics.ForceLayout
        ) where
 
 import           Data.Default.Class
-import           Data.Foldable          (foldMap)
+-- import           Data.Foldable          (foldMap)
 import qualified Data.Map               as M
-import           Data.Monoid
+-- import           Data.Monoid
 
 import           Control.Lens
 import           Control.Monad
@@ -112,6 +113,9 @@ makeLenses ''Particle
 initParticle :: (Additive v, Num n) => Point v n -> Particle v n
 initParticle p = Particle p zero zero False
 
+-- resetParticle :: (Additive v, Num n) => Particle v n -> Particle v n
+-- resetParticle = initParticle . view pos
+
 ------------------------------------------------------------
 --  Ensembles
 ------------------------------------------------------------
@@ -124,12 +128,22 @@ type Edge = (PID, PID)
 
 -- | An @Ensemble@ is a physical configuration of particles.  It
 --   consists of a mapping from particle IDs (unique integers) to
---   particles, and a list of forces that are operative.  Each force
+--   particles, and a list of interForces that are operative.  Each force
 --   has a list of edges to which it applies, and is represented by a
 --   function giving the force between any two points.
 data Ensemble v n = Ensemble
-  { _forces    :: [([Edge], Point v n -> Point v n -> v n)]
+  { _interForces :: [([Edge], Point v n -> Point v n -> v n)]
+       -- ^ Forces acting between particles, towards the first. The second 
+       --   particle receives and equal and opposiite force. This can be used 
+       --   to simulate springs and repultion between particles. See 
+       --   'hookeForce' and 'coulombForce'.
+
+  , _particleForces :: [([PID], Point v n -> v n)]
+       -- ^ Force acting on a particle based on its position. This can used to 
+       --   get a particle to gravitate towards or away from something constant.
+
   , _particles :: M.Map PID (Particle v n)
+       -- ^ Map from @PID@ to correnponding particles.
   }
 
 makeLenses ''Ensemble
@@ -156,23 +170,50 @@ particleStep d p = p &~ do
 --          | p ^. fixed = p
 --          | otherwise  = pos %~ (.+^ p^.vel) $ p
 
--- | Recalculate all the forces acting in the next time step of an
+-- | Recalculate all the interForces acting in the next time step of an
 --   ensemble.
 recalcForces :: (Additive v, Num n) => Ensemble v n -> Ensemble v n
-recalcForces = calcForces . zeroForces
-  where zeroForces = particles . mapped . force .~ zero
-        calcForces (Ensemble fs ps)
-          = Ensemble fs
-            -- (ala Endo foldMap (concatMap (\(es, f) -> map (mkForce f) es) fs) ps)
-            (foldl (.) id (concatMap (\(es, f) -> map (mkForce f) es) fs) ps)
+recalcForces = addParticleForces . addInterForces . zeroForces
+  where
+    zeroForces = particles . mapped . force .~ zero
 
-        mkForce f (i1, i2) m
+    addInterForces (Ensemble ifs pfs ps) = Ensemble ifs pfs ps'
+      where
+        -- apply all the particle adjustments by folding over the list of 
+        -- adjustments
+        ps' = foldl (.) id (concatMap mkAdjusters ifs) ps
+
+        -- makes a list of functions that adjust the particle map for the given 
+        -- set of inter-particle forces
+        mkAdjusters (edges,f) = map (applyForce f) edges
+
+        -- apply a force to two particles that make an edge
+        applyForce f (i1, i2) m
           = case (M.lookup i1 m, M.lookup i2 m) of
               (Just p1, Just p2) ->
-                ( M.adjust (force %~ (^+^ f (p1^.pos) (p2^.pos))) i1
-                . M.adjust (force %~ (^-^ f (p1^.pos) (p2^.pos))) i2)
-                m
-              _                  -> m
+                let f' = f (p1^.pos) (p2^.pos)
+                in  ( M.adjust (force ^+^~ f') i1
+                    -- . M.adjust (force %~ (^-^ f')) i2
+                    . M.adjust (force ^-^~ f') i2
+                    ) m
+              _    -> m
+
+
+    -- similar to addInterForces but each function only needs a single particle
+    addParticleForces (Ensemble ifs pfs ps) = Ensemble ifs pfs ps'
+      where
+        ps' = foldl (.) id (concatMap mkAdjuster pfs) ps
+
+        mkAdjuster (pIds, f) = map (applyForce f) pIds
+
+        applyForce f = M.adjust (\p -> p & force %~ (^+^ f (p^.pos)))
+
+(^+^~) :: (Additive v, Num n) => ASetter s t (v n) (v n) -> v n -> s -> t
+l ^+^~ x = over l (^+^ x)
+
+(^-^~) :: (Additive v, Num n) => ASetter s t (v n) (v n) -> v n -> s -> t
+l ^-^~ x = over l (^-^ x)
+
 
 -- | Compute the total kinetic energy of an ensemble.
 kineticEnergy :: (Metric v, Num n) => Ensemble v n -> n
@@ -239,7 +280,7 @@ forceLayout :: (Metric v, Num n, Ord n)
 forceLayout opts = last . simulate opts
 
 ------------------------------------------------------------
---  Standard forces
+--  Standard interForces
 ------------------------------------------------------------
 
 -- | @distForce f p1 p2@ computes the force between two points as a
@@ -261,4 +302,9 @@ hookeForce k l = distForce (\d -> k * (d - l))
 --   @k@.
 coulombForce :: (Metric v, Floating n) => n -> Point v n -> Point v n -> v n
 coulombForce k = distForce (\d -> -k/(d*d))
+
+-- | @gravitate k p1 p2@ computes the force of pulling @p2@ towards @p1@ with 
+--   spring constant.
+gravitate :: (Metric v, Floating n) => n -> Point v n -> Point v n -> v n
+gravitate k = distForce (* negate k)
 
