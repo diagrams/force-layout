@@ -52,7 +52,7 @@
 module Physics.ForceLayout
        ( -- * Data structures
 
-         Particle(..), pos, vel, force
+         Particle(..), pos, vel, force, fixed
        , initParticle
 
        , PID
@@ -83,11 +83,11 @@ module Physics.ForceLayout
 
 import           Data.Default.Class
 import           Data.Foldable          (foldMap)
-import qualified Data.Foldable          as F
 import qualified Data.Map               as M
 import           Data.Monoid
 
 import           Control.Lens
+import           Control.Monad
 
 import           Linear.Affine
 import           Linear.Vector
@@ -102,6 +102,7 @@ import           Linear.Metric
 data Particle v n = Particle { _pos   :: Point v n
                              , _vel   :: v n
                              , _force :: v n
+                             , _fixed :: Bool
                              }
   deriving Eq
 
@@ -109,7 +110,7 @@ makeLenses ''Particle
 
 -- | Create an initial particle at rest at a particular location.
 initParticle :: (Additive v, Num n) => Point v n -> Particle v n
-initParticle p = Particle p zero zero
+initParticle p = Particle p zero zero False
 
 ------------------------------------------------------------
 --  Ensembles
@@ -126,9 +127,10 @@ type Edge = (PID, PID)
 --   particles, and a list of forces that are operative.  Each force
 --   has a list of edges to which it applies, and is represented by a
 --   function giving the force between any two points.
-data Ensemble v n = Ensemble { _forces    :: [([Edge], Point v n -> Point v n -> v n)]
-                             , _particles :: M.Map PID (Particle v n)
-                             }
+data Ensemble v n = Ensemble
+  { _forces    :: [([Edge], Point v n -> Point v n -> v n)]
+  , _particles :: M.Map PID (Particle v n)
+  }
 
 makeLenses ''Ensemble
 
@@ -139,27 +141,31 @@ makeLenses ''Ensemble
 -- | Simulate one time step for an entire ensemble, with the given
 --   damping factor.
 ensembleStep :: (Additive v, Num n) => n -> Ensemble v n -> Ensemble v n
-ensembleStep d = (over particles . M.map) (particleStep d) . recalcForces
+ensembleStep d = over (particles . mapped) (particleStep d) . recalcForces
 
 -- | Simulate one time step for a particle (assuming the force acting
 --   on it has already been computed), with the given damping factor.
 particleStep :: (Additive v, Num n) => n -> Particle v n -> Particle v n
-particleStep d = stepPos . stepVel
-  where stepVel p = vel .~ (d *^ (p^.vel ^+^ p^.force)) $ p
-        stepPos p = pos %~ (.+^ p^.vel) $ p
+particleStep d p = p &~ do
+  v' <- vel <.= d *^ (p^.vel ^+^ p^.force)
+  unless (p ^. fixed) $ pos %= (.+^ v')
+
+-- particleStep d = stepPos . stepVel
+--   where stepVel p = vel .~ (d *^ (p^.vel ^+^ p^.force)) $ p
+--         stepPos p 
+--          | p ^. fixed = p
+--          | otherwise  = pos %~ (.+^ p^.vel) $ p
 
 -- | Recalculate all the forces acting in the next time step of an
 --   ensemble.
 recalcForces :: (Additive v, Num n) => Ensemble v n -> Ensemble v n
 recalcForces = calcForces . zeroForces
-  where zeroForces = (particles %~) . M.map $ force .~ zero
+  where zeroForces = particles . mapped . force .~ zero
         calcForces (Ensemble fs ps)
           = Ensemble fs
-            (ala Endo foldMap (concatMap (\(es, f) -> (map (mkForce f) es)) fs) ps)
-        -- mkForce :: (Point v n -> Point v n -> v n)
-        --         -> Edge
-        --         -> M.Map Int (Particle v n)
-        --         -> M.Map Int (Particle v n)
+            -- (ala Endo foldMap (concatMap (\(es, f) -> map (mkForce f) es) fs) ps)
+            (foldl (.) id (concatMap (\(es, f) -> map (mkForce f) es) fs) ps)
+
         mkForce f (i1, i2) m
           = case (M.lookup i1 m, M.lookup i2 m) of
               (Just p1, Just p2) ->
@@ -170,7 +176,7 @@ recalcForces = calcForces . zeroForces
 
 -- | Compute the total kinetic energy of an ensemble.
 kineticEnergy :: (Metric v, Num n) => Ensemble v n -> n
-kineticEnergy = ala Sum F.foldMap . fmap (quadrance . view vel) . view particles
+kineticEnergy = sumOf (particles . folded . vel . to quadrance)
 
 ------------------------------------------------------------
 --  Simulation
@@ -196,6 +202,7 @@ data ForceLayoutOpts n =
                               --   steps.  The default is
                               --   @Just 1000@.
   }
+  deriving Show
 
 makeLenses ''ForceLayoutOpts
 
