@@ -206,7 +206,7 @@ recalcForces = addParticleForces . addInterForces . zeroForces
 
         mkAdjuster (pIds, f) = map (applyForce f) pIds
 
-        applyForce f = M.adjust (\p -> p & force %~ (^+^ f (p^.pos)))
+        applyForce f = M.adjust (\p -> p & force ^+^~ f (p^.pos))
 
 (^+^~) :: (Additive v, Num n) => ASetter s t (v n) (v n) -> v n -> s -> t
 l ^+^~ x = over l (^+^ x)
@@ -303,8 +303,10 @@ hookeForce k l = distForce (\d -> k * (d - l))
 coulombForce :: (Metric v, Floating n) => n -> Point v n -> Point v n -> v n
 coulombForce k = distForce (\d -> -k/(d*d))
 
--- | @gravitate k p1 p2@ computes the force of pulling @p2@ towards @p1@ with 
---   spring constant.
+-- | @gravitate k p1 p2@ computes the force of pulling @p2@ towards @p1@ with
+--   spring constant. This can be usefull for hinting a particle to a
+--   particular location without freezing it, or to pull all particles towards
+--   the \"center\" so that particles don't drift off.
 gravitate :: (Metric v, Floating n) => n -> Point v n -> Point v n -> v n
 gravitate k = distForce (* negate k)
 
