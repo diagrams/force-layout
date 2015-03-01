@@ -82,7 +82,6 @@ module Physics.ForceLayout
        ) where
 
 import           Data.Default.Class
-import           Data.Foldable          (foldMap)
 import qualified Data.Foldable          as F
 import qualified Data.Map               as M
 import           Data.Monoid
@@ -155,7 +154,7 @@ recalcForces = calcForces . zeroForces
   where zeroForces = (particles %~) . M.map $ force .~ zero
         calcForces (Ensemble fs ps)
           = Ensemble fs
-            (ala Endo foldMap (concatMap (\(es, f) -> (map (mkForce f) es)) fs) ps)
+            (ala Endo F.foldMap (concatMap (\(es, f) -> (map (mkForce f) es)) fs) ps)
         -- mkForce :: (Point v n -> Point v n -> v n)
         --         -> Edge
         --         -> M.Map Int (Particle v n)
@@ -254,4 +253,3 @@ hookeForce k l = distForce (\d -> k * (d - l))
 --   @k@.
 coulombForce :: (Metric v, Floating n) => n -> Point v n -> Point v n -> v n
 coulombForce k = distForce (\d -> -k/(d*d))
-
