@@ -10,7 +10,7 @@ author:              Brent Yorgey
 maintainer:          byorgey@cis.upenn.edu
 bug-reports:         https://github.com/diagrams/force-layout/issues
 copyright:           (c) 2011 Brent Yorgey
-category:            Graphics
+category:            Physics
 build-type:          Simple
 cabal-version:       >=1.10
 extra-source-files:  CHANGES
