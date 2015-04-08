@@ -13,7 +13,7 @@ copyright:           (c) 2011 Brent Yorgey
 category:            Physics
 build-type:          Simple
 cabal-version:       >=1.10
-extra-source-files:  CHANGES
+extra-source-files:  CHANGELOG.md
 source-repository head
   type:     git
   location: git://github.com/diagrams/force-layout.git
