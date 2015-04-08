@@ -50,31 +50,31 @@
 
 - Make it compilable with GHC HEAD \(v7.9\) [\#1](https://github.com/diagrams/force-layout/pull/1) ([ggreif](https://github.com/ggreif))
 
-* 0.3.0.4: 2 June 2014
+## [v0.3.0.4]() (2 June 2014)
 
   - Allow lens-4.2
 
-* 0.3.0.3: 19 March 2014
+## [v0.3.0.3]() (19 March 2014)
 
   - Allow lens-4.1
 
-* 0.3.0.2: 9 March 2014
+## [v0.3.0.2] () (9 March 2014)
 
   - Allow vector-space-points-0.2
 
-* 0.3.0.1: 12 February 2014
+## [v0.3.0.1] () (12 February 2014)
 
   - Allow lens-4.0
 
-* 0.3: 1 January 2014
+## [v0.3]() [1 January 2014]
 
   - Use lenses for ForceLayoutOpts
 
-* 0.2.0.1: 22 Dec 2013
+## [v0.2.0.1] () (22 Dec 20130
 
   - Allow base-4.7
 
-* 0.2: 5 December 2012
+## [v0.2] () (5 December 2012)
 
   - Switch from fclabels to lens.
 
@@ -82,15 +82,15 @@
     Particle and Ensemble are exported, and they have completely
     different types.  But the API has not otherwise changed.
 
-* 0.1.0.2: 23 August 2012
+## [v0.1.0.2:] () (23 August 2012)
 
   - Bump upper bounds to allow base-4.6 and containers-0.5
 
-* 0.1.0.1: 21 December 2011
+## [v0.1.0.1] () (21 December 2011)
 
   - Bump fclabels upper bound to allow 1.1.0
 
-* 0.1.0.0: 20 December 2011
+## [v0.1.0.0] () (20 December 2011)
 
   - Initial release
 
