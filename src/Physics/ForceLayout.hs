@@ -14,12 +14,14 @@
 --
 -- To use, just create an 'Ensemble' like so:
 --
+-- > import           Control.Lens        ((&), (.~))
+-- > import           Data.Default.Class  (def)
+-- > import qualified Data.Map            as M
+-- > import           Linear.Affine
+-- > import           Linear.V2
 -- > import           Physics.ForceLayout
--- > import qualified Data.Map              as M
--- > import           Data.AffineSpace.Point
--- > import           Data.Default (def)
 -- >
--- > e :: Ensemble (Double, Double)
+-- > e :: Ensemble V2 Double
 -- > e = Ensemble [ (edges,    hookeForce 0.05 4)
 -- >              , (allPairs, coulombForce 1)
 -- >              ]
@@ -27,7 +29,7 @@
 -- >   where edges       = [(1,2), (2,3), (2,5), (3,5), (3,4), (4,5)]
 -- >         allPairs    = [(x,y) | x <- [1..4], y <- [x+1..5]]
 -- >         particleMap = M.fromList . zip [1..]
--- >                     . map (initParticle . P)
+-- >                     . map (initParticle . P . uncurry V2)
 -- >                     $ [ (2.0, 3.1), (6.3, 7.2)
 -- >                       , (0.3, 4.2), (1.6, -1.1)
 -- >                       , (4.8, 2.9)
@@ -37,7 +39,7 @@
 -- all intermediate states) or 'forceLayout' (to get only the ending
 -- state):
 --
--- > e' :: Ensemble (Double, Double)
+-- > e' :: Ensemble V2 Double
 -- > e' = forceLayout (def & damping     .~ 0.8
 -- >                       & energyLimit .~ Just 0.001
 -- >                       & stepLimit   .~ Nothing
@@ -82,15 +84,15 @@ module Physics.ForceLayout
        ) where
 
 import           Data.Default.Class
-import qualified Data.Foldable          as F
-import qualified Data.Map               as M
+import qualified Data.Foldable      as F
+import qualified Data.Map           as M
 import           Data.Monoid
 
 import           Control.Lens
 
 import           Linear.Affine
-import           Linear.Vector
 import           Linear.Metric
+import           Linear.Vector
 
 ------------------------------------------------------------
 --  Particles
