@@ -14,12 +14,14 @@
 --
 -- To use, just create an 'Ensemble' like so:
 --
+-- > import           Control.Lens        ((&), (.~))
+-- > import           Data.Default.Class  (def)
+-- > import qualified Data.Map            as M
+-- > import           Linear.Affine
+-- > import           Linear.V2
 -- > import           Physics.ForceLayout
--- > import qualified Data.Map              as M
--- > import           Data.AffineSpace.Point
--- > import           Data.Default (def)
 -- >
--- > e :: Ensemble (Double, Double)
+-- > e :: Ensemble V2 Double
 -- > e = Ensemble [ (edges,    hookeForce 0.05 4)
 -- >              , (allPairs, coulombForce 1)
 -- >              ]
@@ -27,7 +29,7 @@
 -- >   where edges       = [(1,2), (2,3), (2,5), (3,5), (3,4), (4,5)]
 -- >         allPairs    = [(x,y) | x <- [1..4], y <- [x+1..5]]
 -- >         particleMap = M.fromList . zip [1..]
--- >                     . map (initParticle . P)
+-- >                     . map (initParticle . P . uncurry V2)
 -- >                     $ [ (2.0, 3.1), (6.3, 7.2)
 -- >                       , (0.3, 4.2), (1.6, -1.1)
 -- >                       , (4.8, 2.9)
@@ -37,7 +39,7 @@
 -- all intermediate states) or 'forceLayout' (to get only the ending
 -- state):
 --
--- > e' :: Ensemble (Double, Double)
+-- > e' :: Ensemble V2 Double
 -- > e' = forceLayout (def & damping     .~ 0.8
 -- >                       & energyLimit .~ Just 0.001
 -- >                       & stepLimit   .~ Nothing
@@ -83,16 +85,16 @@ module Physics.ForceLayout
        ) where
 
 import           Data.Default.Class
--- import           Data.Foldable          (foldMap)
-import qualified Data.Map               as M
--- import           Data.Monoid
+import qualified Data.Foldable      as F
+import qualified Data.Map           as M
+import           Data.Monoid
 
 import           Control.Lens
 import           Control.Monad
 
 import           Linear.Affine
-import           Linear.Vector
 import           Linear.Metric
+import           Linear.Vector
 
 ------------------------------------------------------------
 --  Particles
@@ -133,13 +135,13 @@ type Edge = (PID, PID)
 --   function giving the force between any two points.
 data Ensemble v n = Ensemble
   { _interForces :: [([Edge], Point v n -> Point v n -> v n)]
-       -- ^ Forces acting between particles, towards the first. The second 
-       --   particle receives and equal and opposiite force. This can be used 
-       --   to simulate springs and repultion between particles. See 
+       -- ^ Forces acting between particles, towards the first. The second
+       --   particle receives and equal and opposiite force. This can be used
+       --   to simulate springs and repultion between particles. See
        --   'hookeForce' and 'coulombForce'.
 
   , _particleForces :: [([PID], Point v n -> v n)]
-       -- ^ Force acting on a particle based on its position. This can used to 
+       -- ^ Force acting on a particle based on its position. This can used to
        --   get a particle to gravitate towards or away from something constant.
 
   , _particles :: M.Map PID (Particle v n)
@@ -166,7 +168,7 @@ particleStep d p = p &~ do
 
 -- particleStep d = stepPos . stepVel
 --   where stepVel p = vel .~ (d *^ (p^.vel ^+^ p^.force)) $ p
---         stepPos p 
+--         stepPos p
 --          | p ^. fixed = p
 --          | otherwise  = pos %~ (.+^ p^.vel) $ p
 
@@ -179,11 +181,11 @@ recalcForces = addParticleForces . addInterForces . zeroForces
 
     addInterForces (Ensemble ifs pfs ps) = Ensemble ifs pfs ps'
       where
-        -- apply all the particle adjustments by folding over the list of 
+        -- apply all the particle adjustments by folding over the list of
         -- adjustments
         ps' = foldl (.) id (concatMap mkAdjusters ifs) ps
 
-        -- makes a list of functions that adjust the particle map for the given 
+        -- makes a list of functions that adjust the particle map for the given
         -- set of inter-particle forces
         mkAdjusters (edges,f) = map (applyForce f) edges
 
@@ -193,7 +195,6 @@ recalcForces = addParticleForces . addInterForces . zeroForces
               (Just p1, Just p2) ->
                 let f' = f (p1^.pos) (p2^.pos)
                 in  ( M.adjust (force ^+^~ f') i1
-                    -- . M.adjust (force %~ (^-^ f')) i2
                     . M.adjust (force ^-^~ f') i2
                     ) m
               _    -> m
