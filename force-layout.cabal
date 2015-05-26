@@ -1,5 +1,5 @@
 name:                force-layout
-version:             0.4.0.0
+version:             0.4.0.1
 synopsis:            Simple force-directed layout
 description:         Simulation engine for doing simple force-based layout,
                      /e.g./ for trees or graphs.  See the diagrams-contrib package
