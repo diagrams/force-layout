@@ -1,4 +1,6 @@
-# Change Log
+## [v0.4.0.1](https://github.com/diagrams/force-layout/tree/v0.4.0.1) (2015-05-26)
+
+[Full Changelog](https://github.com/diagrams/force-layout/compare/v0.4.0.0...v0.4.0.1)
 
 ## [v0.4.0.0](https://github.com/diagrams/force-layout/tree/v0.4.0.0) (2015-04-19)
 
