@@ -6,7 +6,7 @@ sudo: false
 matrix:
   include:
     - env: HPVER=2013.2.0.0 CABALVER=1.18
-      addons: {apt: {packages: [cabal-install-1.18,ghc-7.6..3], sources: [hvr-ghc]}}
+      addons: {apt: {packages: [cabal-install-1.18,ghc-7.6.3], sources: [hvr-ghc]}}
     - env: HPVER=2014.2.0.0 CABALVER=1.18
       addons: {apt: {packages: [cabal-install-1.18,ghc-7.8.3], sources: [hvr-ghc]}}
     - env: GHCVER=7.6.3 CABALVER=1.18
