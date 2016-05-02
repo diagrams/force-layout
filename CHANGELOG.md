@@ -1,3 +1,8 @@
+## [v0.4.0.4](https://github.com/diagrams/force-layout/tree/v0.4.0.4) (2016-05-01)
+
+- allow `lens-4.14`
+- allow `base-4.9` for `GHC-8.0`
+
 ## [v0.4.0.3](https://github.com/diagrams/force-layout/tree/v0.4.0.3) (2015-09-17)
 
   - allow `lens-4.13`
