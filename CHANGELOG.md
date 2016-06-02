@@ -1,3 +1,8 @@
+## [v0.4.0.5](https://github.com/diagrams/force-layout/tree/v0.4.0.5) (2016-06-02)
+
+- allow `data-default-class-0.1`
+- test with GHC 8.0.1
+
 ## [v0.4.0.4](https://github.com/diagrams/force-layout/tree/v0.4.0.4) (2016-05-01)
 
 - allow `lens-4.14`
