@@ -2,6 +2,13 @@
 
 - allow `lens-4.15`
 
+Hackage revisions:
+
+- r1:
+    - allow `base-4.10` for GHC 8.2
+- r2:
+    - allow `lens-4.16`
+
 ## [v0.4.0.5](https://github.com/diagrams/force-layout/tree/v0.4.0.5) (2016-06-02)
 
 - allow `data-default-class-0.1`
