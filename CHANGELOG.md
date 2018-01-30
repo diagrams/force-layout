@@ -1,4 +1,4 @@
-## [v0.4.0.5](https://github.com/diagrams/force-layout/tree/v0.4.0.6) (2016-10-14)
+## [v0.4.0.6](https://github.com/diagrams/force-layout/tree/v0.4.0.6) (2016-10-14)
 
 - allow `lens-4.15`
 
