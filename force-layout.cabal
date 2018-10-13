@@ -21,10 +21,11 @@ source-repository head
 
 library
   exposed-modules:     Physics.ForceLayout
-  build-depends:       base >= 4.2 && < 4.10,
-                       linear >= 1.10 && < 1.21,
-                       lens >= 3.0 && < 4.16,
-                       containers >=0.4 && < 0.6,
-                       data-default-class >= 0.0.1 && < 0.2
+  build-depends:       base,
+                       linear,
+                       lens,
+                       vector,
+                       containers,
+                       data-default-class
   hs-source-dirs:      src
   default-language:    Haskell2010
