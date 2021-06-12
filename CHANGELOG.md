@@ -14,6 +14,10 @@ Hackage revisions:
     - allow `base-4.12`, `lens-4.17`, and `containers-0.6` (GHC 8.6)
 - r5:
     - allow `base-4.13`, `lens-4.18` (GHC 8.8)
+- r6:
+    - allow `lens-4.19`, `linear-1.21`
+- r7:
+    - allow `base-4.15`, `lens-5.0` (GHC 8.10, 9.0)
 
 ## [v0.4.0.5](https://github.com/diagrams/force-layout/tree/v0.4.0.5) (2016-06-02)
 
