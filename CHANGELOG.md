@@ -26,6 +26,8 @@ Hackage revisions:
     - allow `linear-1.22`
 - r11 (19 June 2023):
     - allow `base-4.18` (GHC 9.6)
+- r12 (22 Jan 2024):
+    - allow `base-4.19` (GHC 9.8)
 
 ## [v0.4.0.5](https://github.com/diagrams/force-layout/tree/v0.4.0.5) (2016-06-02)
 
