@@ -15,7 +15,7 @@
 -- To use, just create an 'Ensemble' like so:
 --
 -- > import           Control.Lens        ((&), (.~))
--- > import           Data.Default.Class  (def)
+-- > import           Data.Default        (def)
 -- > import qualified Data.Map            as M
 -- > import           Linear.Affine
 -- > import           Linear.V2
@@ -83,7 +83,7 @@ module Physics.ForceLayout
 
        ) where
 
-import           Data.Default.Class
+import           Data.Default
 import qualified Data.Foldable      as F
 import qualified Data.Map           as M
 import           Data.Monoid
