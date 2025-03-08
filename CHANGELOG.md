@@ -6,6 +6,8 @@ Hackage revisions:
 
 - r1:
     - allow `base-4.21` (GHC 9.12)
+- r2:
+    - allow `containers-0.8`
 
 ## [v0.4.0.6](https://github.com/diagrams/force-layout/tree/v0.4.0.6) (2016-10-14)
 
